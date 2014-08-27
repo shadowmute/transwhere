@@ -86,11 +86,12 @@ public class InitUI extends UI {
 
 	public static final String transAPI = "Hpa9MWTsv4IlNTT88b5o";
     public int count=0;
+    public String busRouteNumber = "312";
 	private GoogleMap googleMap;
-    private GoogleMapMarker homeMarker = new GoogleMapMarker("DRAGGABLE: Kakolan vankila", new LatLon(49.150478, -122.911677), true, null);
-    public  GoogleMapMarker[] tempMarker = new GoogleMapMarker[1000];
-    private GoogleMapInfoWindow kakolaInfoWindow = new GoogleMapInfoWindow(
-            "Kakola used to be a provincial prison.", homeMarker);
+   // private GoogleMapMarker homeMarker = new GoogleMapMarker("DRAGGABLE: Kakolan vankila", new LatLon(49.150478, -122.911677), true, null);
+   // public  GoogleMapMarker[] tempMarker = new GoogleMapMarker[1000];
+   // private GoogleMapInfoWindow kakolaInfoWindow = new GoogleMapInfoWindow(
+   //         "Kakola used to be a provincial prison.", homeMarker);
     private final String apiKey = "";
 
     @WebServlet(value = "/*", asyncSupported = true)
@@ -109,9 +110,13 @@ public class InitUI extends UI {
         VerticalLayout content = new VerticalLayout();
         content.setSizeFull();
         setContent(content);
-
+        
+        final ArrayList<GoogleMapMarker> busDisplayList = new ArrayList<GoogleMapMarker>();
         final ArrayList<Stops> stopList = new ArrayList<Stops>();
     	final List<GoogleMapMarker> kappa = new ArrayList<GoogleMapMarker>();
+    	final List<GoogleMapInfoWindow> busWindowInfoList = new ArrayList<GoogleMapInfoWindow>();
+    	
+    	
     	List<Double> lati = new ArrayList<Double>();
     	List<Double> longi = new ArrayList<Double>();
        
@@ -196,18 +201,15 @@ public class InitUI extends UI {
         
         googleMap = new GoogleMap(new LatLon(49.198524, -122.921171), 12, apiKey);
         googleMap.setSizeFull();
-        homeMarker.setAnimationEnabled(true);
-        googleMap.addMarker(homeMarker);
-        googleMap.addMarker("DRAGGABLE: Paavo Nurmi Stadion", new LatLon(60.442423, 22.26044), true, "VAADIN/1377279006_stadium.png");
-        googleMap.addMarker("NOT DRAGGABLE: Iso-Heikkilä", new LatLon(60.450403, 22.230399), false, "VAADIN/bus.png");
+       // homeMarker.setAnimationEnabled(true);
+        //googleMap.addMarker(homeMarker);
         googleMap.setMinZoom(3);
         googleMap.setMaxZoom(20);
-
+        googleMap.removeControl(GoogleMapControl.StreetView);
 
 
         
-        kakolaInfoWindow.setWidth("400px");
-        kakolaInfoWindow.setHeight("500px");
+
 
         content.addComponent(googleMap);
         content.setExpandRatio(googleMap, 1.0f);
@@ -226,9 +228,7 @@ public class InitUI extends UI {
         buttonLayoutRow2.setHeight("26px");
         content.addComponent(buttonLayoutRow2);
         
-        OpenInfoWindowOnMarkerClickListener infoWindowOpener = new OpenInfoWindowOnMarkerClickListener(
-                googleMap, homeMarker, kakolaInfoWindow);
-        googleMap.addMarkerClickListener(infoWindowOpener);
+  
 
         googleMap.addMarkerClickListener(new MarkerClickListener() {
             @Override
@@ -287,7 +287,7 @@ public class InitUI extends UI {
                 consoleLayout.addComponent(consoleEntry, 0);
             }
         });
-
+/*Function with Move to location, Zooming o bounds, and adding overlay
         Button moveCenterButton = new Button(
                 "Move over Luonnonmaa (60.447737, 21.991668), zoom 12",
                 new Button.ClickListener() {
@@ -330,87 +330,11 @@ public class InitUI extends UI {
                     }
                 });
         buttonLayoutRow2.addComponent(addPolyOverlayButton);
-
-        Button addPolyLineButton = new Button("Refresh Current Bus Location",
-                new Button.ClickListener() {
-                    @Override
-                    public void buttonClick(ClickEvent event) {
-                        
-                    	//;
-                    	System.out.println(count+"what?");
-            			while (count!=0){
-							googleMap.removeMarker(tempMarker[count-1]);
-							count--;
-						}
-                    	
-            			count=0;
-            			
-                        URL tomat = null;
-						try {
-							tomat = new URL("http://api.translink.ca/rttiapi/v1/buses?apikey="+transAPI+"&routeNo=312");
-						} catch (MalformedURLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-                        BufferedReader in = null;
-						try {
-							in = new BufferedReader(new InputStreamReader(tomat.openStream()));
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-                        String inputLine = null, inputLat = null, inputLong = null, inputTime = null;
-                        boolean andGetLong=false;
-                        
-                        
-                    try {
-						while ((inputLine = in.readLine()) != null)
-						{
-							//if zero results will throw an error; im assuming user input is well-formated
-				
-							
-							
-							
-							int latStart = inputLine.indexOf("<Latitude>");
-							int latEnd = inputLine.indexOf("</Latitude>");
-							
-						
-							int longStart =0;
-							int longEnd = 0;
-							
-							int timeStart = inputLine.indexOf("<RecordedTime>");
-							//System.out.println(count+"what?"+(inputLine.indexOf("<Latitude>",longEnd+1)));
-							while ((inputLine.indexOf("<Latitude>",longEnd+1))!=-1)
-							{
-						    	latStart = inputLine.indexOf("<Latitude>",longEnd+1);
-						    	latEnd = inputLine.indexOf("</Latitude>",longEnd+1);
-						    	
-						    
-						    	longStart = inputLine.indexOf("<Longitude>",longEnd+1);
-						    	longEnd = inputLine.indexOf("</Longitude>",longEnd+1);
-						    	
-						    	
-						    	
-						    	inputTime =inputLine.substring(timeStart+14, timeStart+22);
-						    	inputLat=inputLine.substring(latStart+10, latEnd);
-						    	inputLong = inputLine.substring(longStart+11, longEnd);
-						    	
-								tempMarker[count]=new GoogleMapMarker("Current Location!", new LatLon(Double.parseDouble(inputLat),Double.parseDouble(inputLong)),false, "VAADIN/bus.png");
-								
-								googleMap.addMarker(tempMarker[count]);
-								count++;
-								System.out.println(inputTime);
-							}
-						    
-						    
-						    
-						}
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-                }});
-        buttonLayoutRow2.addComponent(addPolyLineButton);
+*/
+        
+        
+        
+        /*DRAWING LINE
         Button addPolyLineButton2 = new Button(
                 "Draw line from Turku to Raisio2", new Button.ClickListener() {
                     @Override
@@ -425,6 +349,108 @@ public class InitUI extends UI {
                     }
                 });
         buttonLayoutRow2.addComponent(addPolyLineButton2);
+        */
+        
+        
+        Button addRefreshBusButton = new Button("Refresh Current Bus Location",
+                new Button.ClickListener() {
+                    @Override
+                    public void buttonClick(ClickEvent event) {
+                        
+                    	
+                    	
+                    	//;
+                    	//System.out.println(count+"what?");
+            			while (count!=0){
+							googleMap.removeMarker(busDisplayList.get(count-1));
+							googleMap.closeInfoWindow(busWindowInfoList.get(count-1));
+							
+							count--;
+						}
+                    	busDisplayList.clear();
+                    	busWindowInfoList.clear();
+            			count=0;
+            			
+                        URL tomat = null;
+						try {
+							tomat = new URL("http://api.translink.ca/rttiapi/v1/buses?apikey="+transAPI+"&routeNo="+busRouteNumber);
+						} catch (MalformedURLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+                        BufferedReader in = null;
+						try {
+							in = new BufferedReader(new InputStreamReader(tomat.openStream()));
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+                        String inputLine = null, inputLat = null, inputLong = null,  direction=null;
+                        ArrayList<String> inputTime = new ArrayList<String>();
+                        boolean andGetLong=false;
+                        
+                        
+                    try {
+						while ((inputLine = in.readLine()) != null)
+						{
+							int latStart = inputLine.indexOf("<Latitude>");
+							int latEnd = inputLine.indexOf("</Latitude>");
+							int directionStart = inputLine.indexOf("<Direction>");
+							int longStart=0;
+							int longEnd=0;
+							int timeEnd=0;
+							int timeStart = inputLine.indexOf("<RecordedTime>");
+							//System.out.println(count+"what?"+(inputLine.indexOf("<Latitude>",longEnd+1)));
+							while ((inputLine.indexOf("<Latitude>",longEnd+1))!=-1)
+							{
+						    	latStart = inputLine.indexOf("<Latitude>",longEnd+1);
+						    	latEnd = inputLine.indexOf("</Latitude>",longEnd+1);
+						    	
+						    	longStart = inputLine.indexOf("<Longitude>",longEnd+1);
+						    	longEnd = inputLine.indexOf("</Longitude>",longEnd+1);
+						    	
+						    	timeStart = inputLine.indexOf("<RecordedTime>",longEnd+1);
+						    	//timeEnd = inputLine.indexOf("</RecordedTime>",longEnd+1);
+						    	
+						    	
+						    	inputTime.add(inputLine.substring(timeStart+14, timeStart+22));
+						    	inputLat=inputLine.substring(latStart+10, latEnd);
+						    	inputLong = inputLine.substring(longStart+11, longEnd);
+						    	direction = inputLine.substring(directionStart+11, directionStart+16);
+						    	
+								busDisplayList.add(count,new GoogleMapMarker("Current Location!", new LatLon(Double.parseDouble(inputLat),Double.parseDouble(inputLong)),false, "VAADIN/bus.png"));
+								
+								googleMap.addMarker(busDisplayList.get(count));
+								count++;
+								System.out.println(direction);
+								System.out.println(inputTime);
+								
+								directionStart = inputLine.indexOf("<Direction>",longEnd+1);
+							}
+						    
+						    
+						    
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                    
+                    
+                    for (int i=0;i<busDisplayList.size();i++){
+                    	busWindowInfoList.add(new GoogleMapInfoWindow(""+inputTime.get(i), busDisplayList.get(i)));
+                    	   //         "Kakola used to be a provincial prison.", homeMarker);
+                    	busWindowInfoList.get(i).setWidth("100px");
+                    	busWindowInfoList.get(i).setHeight("100px");
+                    	googleMap.openInfoWindow(busWindowInfoList.get(i));
+                    }
+                    
+                }});
+        buttonLayoutRow1.addComponent(addRefreshBusButton);
+        
+        
+
+        
         Button changeToTerrainButton = new Button("Change to terrain map",
                 new Button.ClickListener() {
                     @Override
@@ -435,25 +461,12 @@ public class InitUI extends UI {
                 });
         buttonLayoutRow2.addComponent(changeToTerrainButton);
 
-        Button changeControls = new Button("Remove street view control",
-                new Button.ClickListener() {
-                    @Override
-                    public void buttonClick(ClickEvent event) {
-                        googleMap.removeControl(GoogleMapControl.StreetView);
-                        event.getButton().setEnabled(false);
-                    }
-                });
-        buttonLayoutRow2.addComponent(changeControls);
 
-        Button addInfoWindowButton = new Button(
-                "Add InfoWindow to Kakola marker", new Button.ClickListener() {
-                    @Override
-                    public void buttonClick(ClickEvent event) {
-                        googleMap.openInfoWindow(kakolaInfoWindow);
-                    }
-                });
-        buttonLayoutRow2.addComponent(addInfoWindowButton);
 
+       
+                        
+                   
+/*marker moving
         Button moveMarkerButton = new Button("Move kakola marker",
                 new Button.ClickListener() {
 
@@ -464,7 +477,7 @@ public class InitUI extends UI {
                     }
                 });
         buttonLayoutRow2.addComponent(moveMarkerButton);
-
+*/
         Button addKmlLayerButton = new Button("Add 312 Layer!", new Button.ClickListener() {
                     @Override
                     public void buttonClick(ClickEvent event) {
@@ -523,5 +536,3 @@ public class InitUI extends UI {
 
         }
     
-
-            

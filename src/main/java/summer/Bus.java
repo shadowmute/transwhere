@@ -1,33 +1,33 @@
 package summer;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.URL;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-import java.util.Scanner;
 
 
-public class Stops                                                                                                                                         
+
+
+import com.vaadin.tapio.googlemaps.client.LatLon;
+import com.vaadin.tapio.googlemaps.client.overlays.GoogleMapInfoWindow;
+import com.vaadin.tapio.googlemaps.client.overlays.GoogleMapMarker;
+
+
+public class Bus                                                                                                                                        
 {
  // Read from URL and return the content in a String
-private int stopID;
-private double lat, lng, distance;
-private List<Integer> time = new ArrayList<Integer>();
-String day, direction;
+private double lat, lng;
+private String time, direction, busRoute;
+private GoogleMapMarker busMarker;
+private GoogleMapInfoWindow busWindowInfo;
+
 public static final String transAPI = "Hpa9MWTsv4IlNTT88b5o";
    
-   public Stops (int _stopID, double _lat, double _lng){
-	   stopID=_stopID;
+   public Bus (String _busRoute, double _lat, double _lng, String _direction ){
+	   busRoute=_busRoute;
 	   lat=_lat;
 	   lng=_lng;
+	   direction=_direction;
    }
    
    
@@ -35,7 +35,7 @@ public static final String transAPI = "Hpa9MWTsv4IlNTT88b5o";
    
    public void addTime(int _time)
    {
-	   time.add(_time);
+	 //  time.add(_time);
    }
    
    public double getLat() {
@@ -45,10 +45,29 @@ public static final String transAPI = "Hpa9MWTsv4IlNTT88b5o";
 	   return lng;
    }
 
-   public String toString() {
-	return "Stop ID#:"+stopID+"\n"+time.toString();
+   public String getBusRoute() {
+	   return busRoute;
    }
    
+   public GoogleMapMarker getMarker() {
+	   busMarker=new GoogleMapMarker("", new LatLon(lat,lng),false, "VAADIN/bus.png");
+	   return busMarker;
+   }
+   
+   
+   public GoogleMapInfoWindow getWindow() {
+	   busWindowInfo = new GoogleMapInfoWindow("Last updated: ",getMarker());
+	   busWindowInfo.setHeight("100px");
+	   busWindowInfo.setWidth("100px");
+	   return busWindowInfo;
+   }
+   
+   
+   public String toString() {
+	return "Stop ID#:"+busRoute+"\n"+time.toString();
+   }
+   
+   /*
    public double getDistance() {
 	   return distance;
    }
@@ -57,7 +76,7 @@ public static final String transAPI = "Hpa9MWTsv4IlNTT88b5o";
 	   distance=_distance;
 	   
    }
-   
+   */
    
     public static void main(String[] args) throws IOException, ParseException
     {
